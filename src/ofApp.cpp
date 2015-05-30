@@ -11,6 +11,8 @@ void ofApp::setup()
 	gui.setPosition( (ofGetWidth() / 2)-(gui.getWidth()/2)  , (ofGetHeight() / 2)-(gui.getHeight()/2));
 	botonCrearPartida.addListener(this, &ofApp::crearPartida);
 	botonConectarPartida.addListener(this, &ofApp::conectarPartida);
+
+	jugadorLocal = NULL;
 }
 
 //--------------------------------------------------------------
@@ -28,30 +30,53 @@ void ofApp::update()
 
 void ofApp::updateCliente()
 {
-	jugadorLocal->update();
 	if (clienteEsperandoID )//&& TCPClient.isConnected())
 	{
 		string str = TCPClient.receive();
-		idCliente = str;
-		ofLog(OF_LOG_NOTICE, "conectado a servidor con id ="+idCliente);
-		//TCPClient.send("OK");
-		clienteEsperandoID = false;
-		jugadorLocal = new Jugador(nombreJugador, idCliente); 
-		//conectar por udp 
-
+		if(str.size() != 0)
+		{
+			idCliente = str;
+			ofLog(OF_LOG_NOTICE, "conectado a servidor con id: "+idCliente);
+			TCPClient.send("OK");
+			clienteEsperandoID = false;
+			jugadorLocal = new Jugador(idCliente, idCliente); 
+			//conectar por udp 
+			udpManager.Create();
+			std::cout << "Conectando por UDP a " << TCPClient.getIP().c_str() << std::endl;
+			udpManager.Connect( TCPClient.getIP().c_str(), PUERTO_UDP);
+			udpManager.SetNonBlocking(true);
+		}
+		else
+		{
+			std::cout << "esperando ID"<< std::endl;
+		}
 	}
-
-	//iterar la lista de jugadores y actualizarlos
-	for(std::vector<Jugador>::iterator it = jugadores.begin(); it != jugadores.end(); ++it) 
+	else
 	{
-		Jugador j = *it;
-		j.update();
-	}
+		jugadorLocal->update();
+		//replicar estoado del jugador
+		string res = jugadorLocal->datosRepl.getRawString();
+		udpManager.Send( res.c_str(), res.size());
+
+		//iterar la lista de jugadores y actualizarlos
+		/*for(std::vector<Jugador>::iterator it = jugadores.begin(); it != jugadores.end(); ++it) 
+		{
+			Jugador j = *it;
+			j.update();
+		}*/
+	}	
 }
 
 void ofApp::updateServidor()
 {
 	jugadorLocal->update();
+
+	//leer los mensajes entrantes por UDP
+	char mensaje[100];
+	udpManager.Receive(mensaje, 100);
+	std::cout << "UDP: " << mensaje <<std::endl;
+
+	//iteramos en todos los clientes conectados por TCP
 	for (int i = 0; i < TCPServer.getLastID(); i++) // getLastID is UID of all clients
 	{
 		if (TCPServer.isClientConnected(i))// && TCPServer.getNumReceivedBytes(i)>0)
@@ -65,8 +90,7 @@ void ofApp::updateServidor()
 				std::cout << "jugador " << parametros[1] << " se quiere conectar" << std::endl;
 				Jugador * jugadorNuevo = new Jugador(parametros[1], ofToString(i));
 				jugadores.push_back(*jugadorNuevo);
-
-				//TCPServer.send(i, "cliente" + i);
+				TCPServer.send(i, parametros[1]);
 				//ofLog(OF_LOG_NOTICE, "jugador conectado"+i);
 			}
 			if(str == "OK")
@@ -107,13 +131,17 @@ void ofApp::draw()
 
 void ofApp::drawCliente()
 {
-	jugadorLocal->draw();
-	//iterar la lista de jugadores remotos y dibujarlos
+	if(jugadorLocal != NULL)
+	{
+		jugadorLocal->draw();
+	}
+		//iterar la lista de jugadores remotos y dibujarlos
+	/*
 	for(std::vector<Jugador>::iterator it = jugadores.begin(); it != jugadores.end(); ++it) 
 	{
 		Jugador j = *it;
 		j.draw();
-	}
+	}*/
 }
 
 void ofApp::drawServidor()
@@ -146,7 +174,9 @@ void ofApp::crearPartida()
 	//crear un servidor TCP para manejar los clientes que se quieren conectar
 	TCPServer.setup(PUERTO_TCP);
 	//TCPServer.setMessageDelimiter("\n");
-
+	udpManager.Create();
+	udpManager.Bind(PUERTO_UDP);
+	udpManager.SetNonBlocking(true);
 	//crear un jugador local
 	jugadorLocal = new Jugador("SERVER", "-1"); 
 }

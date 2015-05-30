@@ -23,8 +23,11 @@ public:
 
 	void CambiarNombre(string n);
 
-private:
+	
 	ofxJSONElement datosRepl;
+
+private:
 	bool w,a,s,d;
+	bool disparando;
 };
 

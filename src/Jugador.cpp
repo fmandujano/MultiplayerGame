@@ -11,8 +11,9 @@ Jugador::Jugador(string _nombre, string _id)
 	a = false;
 	s = false;
 	d = false;
+	disparando = false;
 	posicion = new ofVec2f(50,50);
-	CambiarNombre(nombre);
+	CambiarNombre(_nombre);
 	id = _id;
 }
 
@@ -29,9 +30,15 @@ void Jugador::update()
 	if(s) posicion->y += 3;
 
 	//replicar el estado del jugador
-	//datos["input"] = 
-
-
+	std::stringstream *ss = new stringstream();
+	*ss <<  w ? "1" : "0";
+	*ss << a ? "1" : "0";
+	*ss << s ? "1" : "0";
+	*ss << d ? "1" : "0";
+	*ss << disparando ? "1":"0";
+	//std::cout << ss->str() << std::endl;
+	datosRepl["input"] =  ss->str();
+	//std::cout << datosRepl.getRawString() << std::endl;
 }
 
 void Jugador::draw()
@@ -64,6 +71,11 @@ void Jugador::keyPressed(int key)
 		{
 		d =true;
 		}
+		else if(key == ' ') 
+		{
+			disparando = true;
+		}
+
 	}
 }
 
@@ -86,6 +98,10 @@ void Jugador::keyReleased(int key)
 		else if(key == 'd') 
 		{
 		d =false;
+		}
+		else if(key == ' ') 
+		{
+			disparando = false;
 		}
 	}
 }
