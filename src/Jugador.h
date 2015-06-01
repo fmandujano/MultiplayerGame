@@ -12,22 +12,28 @@ public:
 
 	bool esLocal;
 	ofVec2f *posicion;
+	float rapidez;
 	string nombre;
 	string id;
+	
+	bool w,a,s,d;
+	bool disparando;
 
 	void update();
 	void draw();
 	
 	void keyPressed(int key);
 	void keyReleased(int key);
-
-	void CambiarNombre(string n);
-
 	
 	ofxJSONElement datosRepl;
 
 private:
-	bool w,a,s,d;
-	bool disparando;
 };
 
+/*
+estructura de datosRepl
+{
+	"input":"00000",
+	"jugador":"nombre"
+}
+*/

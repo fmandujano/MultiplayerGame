@@ -58,4 +58,7 @@ class ofApp : public ofBaseApp{
 
 		//variables de servidor
 		ofxTCPServer TCPServer;
+
+private:
+	void analizarMensajeUDP(const char * mensaje);
 };

@@ -3,18 +3,20 @@
 
 Jugador::Jugador(void)
 {
+	Jugador("jugador", "-1");
 }
 Jugador::Jugador(string _nombre, string _id)
 {
-	
 	w = false;
 	a = false;
 	s = false;
 	d = false;
 	disparando = false;
 	posicion = new ofVec2f(50,50);
-	CambiarNombre(_nombre);
+	rapidez = 100; //pixeles sobre segundo
+	nombre = _nombre;
 	id = _id;
+	datosRepl["id"] = id;
 }
 
 
@@ -24,30 +26,45 @@ Jugador::~Jugador(void)
 
 void Jugador::update()
 {
-	if(a) posicion->x -= 3;
-	if(d) posicion->x += 3;
-	if(w) posicion->y -= 3;
-	if(s) posicion->y += 3;
+	if(a) posicion->x -= rapidez*ofGetLastFrameTime();
+	if(d) posicion->x += rapidez*ofGetLastFrameTime();
+	if(w) posicion->y -= rapidez*ofGetLastFrameTime();
+	if(s) posicion->y += rapidez*ofGetLastFrameTime();
 
 	//replicar el estado del jugador
-	std::stringstream *ss = new stringstream();
-	*ss <<  w ? "1" : "0";
-	*ss << a ? "1" : "0";
-	*ss << s ? "1" : "0";
-	*ss << d ? "1" : "0";
-	*ss << disparando ? "1":"0";
-	//std::cout << ss->str() << std::endl;
-	datosRepl["input"] =  ss->str();
-	//std::cout << datosRepl.getRawString() << std::endl;
+	if(esLocal)
+	{
+		std::stringstream *ss = new stringstream();
+		*ss <<  w ? "1" : "0";
+		*ss << a ? "1" : "0";
+		*ss << s ? "1" : "0";
+		*ss << d ? "1" : "0";
+		*ss << disparando ? "1":"0";
+		//std::cout << ss->str() << std::endl;
+		datosRepl["input"] =  ss->str();
+		//std::cout << datosRepl.getRawString() << std::endl;
+	}
 }
 
 void Jugador::draw()
 {
-	ofSetColor(12,255,0);
-	//ofCircle(posicion->x, posicion->y, 10);
-	ofRect(posicion->x, posicion->y, 15,15);
+	int ancho = 30;
+	int alto = 34;
+	int anchoOruga = 8;
+	int largoCanon = alto/2+5;
+	ofSetColor(85,107,47);
+	//oruga izq
+	ofRect(posicion->x-(ancho/2), posicion->y-alto/2, anchoOruga, alto);
+	//oruga der
+	ofRect(posicion->x+(ancho/2)-anchoOruga, posicion->y-alto/2, anchoOruga, alto);
+	//cañon
+	ofSetColor(107, 142, 35);
+	ofRect(posicion->x-2, posicion->y-largoCanon, 4, largoCanon); 
+	//torreta
+	ofCircle(posicion->x, posicion->y, ancho/2 - anchoOruga/2);
+	//nombre del jugador
 	ofSetColor(ofColor::black);
-	ofDrawBitmapString(nombre, posicion->x - 17, posicion->y -12);
+	ofDrawBitmapString(nombre, posicion->x - ancho, posicion->y -alto);
 }
 
 void Jugador::keyPressed(int key)
@@ -104,10 +121,4 @@ void Jugador::keyReleased(int key)
 			disparando = false;
 		}
 	}
-}
-
-void Jugador::CambiarNombre(string n)
-{
-	nombre = n;
-	datosRepl["nombre"] = nombre;
 }
