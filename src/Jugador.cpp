@@ -5,6 +5,7 @@ Jugador::Jugador(void)
 {
 	Jugador("jugador", "-1");
 }
+
 Jugador::Jugador(string _nombre, string _id)
 {
 	w = false;
@@ -30,6 +31,9 @@ void Jugador::update()
 	if(d) posicion->x += rapidez*ofGetLastFrameTime();
 	if(w) posicion->y -= rapidez*ofGetLastFrameTime();
 	if(s) posicion->y += rapidez*ofGetLastFrameTime();
+
+	//imprime el estado de los inputs
+	//if(!esLocal) std::cout << w<<a<<s<<d<< std::endl;
 
 	//replicar el estado del jugador
 	if(esLocal)
