@@ -55,19 +55,19 @@ void ofApp::updateCliente()
 	else
 	{
 		jugadorLocal->update();
-		//replicar estoado del jugador
+		//replicar estado del jugador
 		string res = jugadorLocal->datosRepl.getRawString();
 		udpManager.Send( res.c_str(), res.size());
 
 		//leer los mensajes entrantes por UDP
-		char mensaje[1000];
+		char mensaje[64000];
 		string message;  
 		string tempMessage;  
 		bool getNext = true;  
 
 		while (getNext) 
 		{  
-			udpManager.Receive(mensaje, 100);  
+			udpManager.Receive(mensaje, 64000);  
 			tempMessage = mensaje;  
 			if (tempMessage=="") 
 			{
@@ -160,10 +160,11 @@ void ofApp::updateServidor()
 			jsonJugador["x"] = jug->posicion->x;
 			jsonJugador["y"] = jug->posicion->y;
 			broadcastJSON["jugadores"][i] = jsonJugador;
+			i++;
 		}
 
 		udpManager.SendAll(broadcastJSON.getRawString().c_str(), broadcastJSON.getRawString().size());
-		std::cout << broadcastJSON.getRawString() << std::endl;
+		std::cout << "Enviando " << broadcastJSON.getRawString().size() << "bytes" << std::endl;
 		//delete &jsonJugador;
 	}
 }
@@ -204,9 +205,16 @@ void ofApp::analizarMensajeUDPGlobal(const char * mensaje)
 	ofxJSONElement json;
 	if(json.parse(mensaje))
 	{
-		if(json.isArray())
+		ofxJSONElement::Value lista = json["jugadores"];
+		if(lista.isArray()     )
 		{
-			std::cout << "el mensaje recibido es un arreglo\n";
+			for(Json::ValueIterator itr = lista.begin(); itr != lista.end(); itr++)
+			{
+				//std::cout<<  (*itr)["nombre"].asString();
+				dibujarJugadorSimple(  (*itr)["nombre"].asString(),
+										ofToInt((*itr)["x"].asString()),
+										ofToInt((*itr)["y"].asString()));
+			}
 		}
 	}
 }
@@ -333,4 +341,27 @@ void ofApp::gotMessage(ofMessage msg){
 //--------------------------------------------------------------
 void ofApp::dragEvent(ofDragInfo dragInfo){ 
 
+}
+
+
+void ofApp::dibujarJugadorSimple(string nombre, int x, int y)
+{
+	std::cout << "dibujando jugador " << nombre << std::endl;
+	int ancho = 30;
+	int alto = 34;
+	int anchoOruga = 8;
+	int largoCanon = alto/2+5;
+	ofSetColor(85,107,47);
+	//oruga izq
+	ofRect(x-(ancho/2), y-alto/2, anchoOruga, alto);
+	//oruga der
+	ofRect(x+(ancho/2)-anchoOruga, y-alto/2, anchoOruga, alto);
+	//cañon
+	ofSetColor(107, 142, 35);
+	ofRect(x-2, y-largoCanon, 4, largoCanon); 
+	//torreta
+	ofCircle(x, y, ancho/2 - anchoOruga/2);
+	//nombre del jugador
+	ofSetColor(ofColor::cornflowerBlue);
+	ofDrawBitmapString(nombre, x - ancho, y -alto);
 }

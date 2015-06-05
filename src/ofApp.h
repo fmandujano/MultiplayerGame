@@ -63,4 +63,5 @@ class ofApp : public ofBaseApp{
 private:
 	void analizarMensajeUDP(const char * mensaje);
 	void analizarMensajeUDPGlobal(const char * mensaje);
+	void dibujarJugadorSimple(string nombre, int x, int y);
 };
