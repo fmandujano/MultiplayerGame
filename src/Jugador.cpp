@@ -36,18 +36,15 @@ void Jugador::update()
 	//if(!esLocal) std::cout << w<<a<<s<<d<< std::endl;
 
 	//replicar el estado del jugador
-	if(esLocal)
-	{
-		std::stringstream *ss = new stringstream();
-		*ss <<  w ? "1" : "0";
-		*ss << a ? "1" : "0";
-		*ss << s ? "1" : "0";
-		*ss << d ? "1" : "0";
-		*ss << disparando ? "1":"0";
-		//std::cout << ss->str() << std::endl;
-		datosRepl["input"] =  ss->str();
-		//std::cout << datosRepl.getRawString() << std::endl;
-	}
+	std::stringstream *ss = new stringstream();
+	*ss <<  w ? "1" : "0";
+	*ss << a ? "1" : "0";
+	*ss << s ? "1" : "0";
+	*ss << d ? "1" : "0";
+	*ss << disparando ? "1":"0";
+	//std::cout << ss->str() << std::endl;
+	datosRepl["input"] =  ss->str();
+	delete ss;
 }
 
 void Jugador::draw()

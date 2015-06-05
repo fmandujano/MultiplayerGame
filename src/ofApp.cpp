@@ -13,11 +13,6 @@ void ofApp::setup()
 	botonConectarPartida.addListener(this, &ofApp::conectarPartida);
 
 	jugadorLocal = NULL;
-
-	//ejemplo de json
-	//aglutinar datos de jugadores para replicarlos
-	ofxJSONElement jsonJugadores;
-	jsonJugadores["jugadores"] = 
 }
 
 //--------------------------------------------------------------
@@ -64,12 +59,29 @@ void ofApp::updateCliente()
 		string res = jugadorLocal->datosRepl.getRawString();
 		udpManager.Send( res.c_str(), res.size());
 
-		//iterar la lista de jugadores y actualizarlos
-		/*for(std::vector<Jugador>::iterator it = jugadores.begin(); it != jugadores.end(); ++it) 
+		//leer los mensajes entrantes por UDP
+		char mensaje[1000];
+		string message;  
+		string tempMessage;  
+		bool getNext = true;  
+
+		while (getNext) 
+		{  
+			udpManager.Receive(mensaje, 100);  
+			tempMessage = mensaje;  
+			if (tempMessage=="") 
+			{
+				getNext = false;  
+			}
+			else 
+			{
+				message = tempMessage;  
+			}
+		}  
+		if(message!="")
 		{
-			Jugador j = *it;
-			j.update();
-		}*/
+			analizarMensajeUDPGlobal(message.c_str());
+		}
 	}	
 }
 
@@ -129,11 +141,30 @@ void ofApp::updateServidor()
 	}
 
 	//iterar la lista de jugadores y actualizarlos
-	for(std::vector<Jugador>::iterator it = jugadores.begin(); it != jugadores.end(); ++it) 
+	if(jugadores.size() > 0)
 	{
-		Jugador j = *it;
-		//std::cout << "P"<<j.id<<"::"<<  j.esLocal << ","<< j.w<<j.a<<j.s<<j.d<<std::endl;
-		j.update();
+		ofxJSONElement jsonJugador;
+		//el primer elemento es un json con datos del jugador local del servidor
+		jsonJugador["id"] = jugadorLocal->id;
+		jsonJugador["nombre"] = jugadorLocal->nombre;
+		jsonJugador["x"] = jugadorLocal->posicion->x;
+		jsonJugador["y"] = jugadorLocal->posicion->y;
+		broadcastJSON["jugadores"][0] =  jsonJugador;
+		int i=1;
+		for(std::vector<Jugador>::iterator jug = jugadores.begin(); jug != jugadores.end(); ++jug) 
+		{
+			jug->update();
+			//preparar el mensaje global
+			jsonJugador["id"] = jug->id;
+			jsonJugador["nombre"] = jug->nombre;
+			jsonJugador["x"] = jug->posicion->x;
+			jsonJugador["y"] = jug->posicion->y;
+			broadcastJSON["jugadores"][i] = jsonJugador;
+		}
+
+		udpManager.SendAll(broadcastJSON.getRawString().c_str(), broadcastJSON.getRawString().size());
+		std::cout << broadcastJSON.getRawString() << std::endl;
+		//delete &jsonJugador;
 	}
 }
 
@@ -160,11 +191,23 @@ void ofApp::analizarMensajeUDP(const char * mensaje)
 				it->s = (input[2] - '0') != 0;
 				it->d = (input[3] - '0') != 0;
 				it->disparando = (input[4] - '0') != 0;
-
 				break;
 			}
 		}
+	}
+}
 
+/* analiza el mensaje enviado de servidor a cliente con los datos de todos los jugadores */
+void ofApp::analizarMensajeUDPGlobal(const char * mensaje)
+{
+	//convertir string a objeto JSON
+	ofxJSONElement json;
+	if(json.parse(mensaje))
+	{
+		if(json.isArray())
+		{
+			std::cout << "el mensaje recibido es un arreglo\n";
+		}
 	}
 }
 

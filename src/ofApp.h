@@ -58,7 +58,9 @@ class ofApp : public ofBaseApp{
 
 		//variables de servidor
 		ofxTCPServer TCPServer;
+		ofxJSONElement broadcastJSON;
 
 private:
 	void analizarMensajeUDP(const char * mensaje);
+	void analizarMensajeUDPGlobal(const char * mensaje);
 };
