@@ -19,8 +19,12 @@ x64/
 x86/
 build/
 bld/
-[Bb]in/
 [Oo]bj/
+
+# ignorar el contenido de bin pero no de la subcarpeta data
+bin/*
+!bin/data
+
 
 # Visual Studio 2015 cache/options directory
 .vs/

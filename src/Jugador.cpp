@@ -18,11 +18,68 @@ Jugador::Jugador(string _nombre, string _id)
 	nombre = _nombre;
 	id = _id;
 	datosRepl["id"] = id;
+
+
+	//leer las propiedades visuales desde un archivo
+	string rutaArchivo = "tanque.json";
+	ofxJSONElement json;
+	if (json.open(rutaArchivo))
+	{
+		ancho = json["ancho"].asInt();
+		alto = json["alto"].asInt();
+		anchoOruga = json["woruga"].asInt();
+		largoCanon = json["lcannon"].asInt();
+	}
+	else
+	{
+		throw EXCEPTION_READ_FAULT;
+	}
 }
 
 
 Jugador::~Jugador(void)
 {
+}
+
+/*
+	Carga los datos desde una base de datos implementada con sqlite3
+*/
+void Jugador::cargarDatos()
+{
+	cout<<"Cargando datos desde sqlite" << endl;
+	//referencia al archivo de la base de datos
+	sqlite3 *db;
+	//contador de registro, utilizado apra almacenar codigos de retorno
+	int rc;
+	//buffer para los mensajes de error
+	char *zErrMsg = 0;
+	//abrir el archivo y cargar la BD
+	rc = sqlite3_open("data/data.sqlite", &db);
+	//si rc es distinto de 0, hubo un error
+	if(rc)
+	{
+		printf("no se puede acceder a la base de datos");
+		sqlite3_close(db);
+	}
+
+	//seleccionar todas las columnas del registro cuyo nombre es chuchito
+	string query = "SELECT * FROM jugador WHERE nombre='chuchito'";
+	rc = sqlite3_exec(db, query.c_str(), cargarJugadores, 0, &zErrMsg); //cargarjugadores se llamara por cada registro que se encuentre
+}
+
+/*
+	callback llamado para cada registro encontrado en la consulta de jugadores
+*/
+int Jugador::cargarJugadores(void *NotUsed, int argc, char **argv, char **azColName)
+{
+	//simplemente imprimira los datos en la consola
+	std::cout << "Registro:\n";
+	for(int i=0; i<argc; i++)
+	{
+		std::cout << azColName[i] << " : " << argv[i] << std::endl;
+	}
+	//retornar 0, codigo de que no hubo error
+	return 0;
 }
 
 void Jugador::update()
@@ -49,10 +106,6 @@ void Jugador::update()
 
 void Jugador::draw()
 {
-	int ancho = 30;
-	int alto = 34;
-	int anchoOruga = 8;
-	int largoCanon = alto/2+5;
 	ofSetColor(85,107,47);
 	//oruga izq
 	ofRect(posicion->x-(ancho/2), posicion->y-alto/2, anchoOruga, alto);

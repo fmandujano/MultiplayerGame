@@ -1,6 +1,5 @@
 #include "ofApp.h"
 
-
 //--------------------------------------------------------------
 void ofApp::setup()
 {
@@ -13,6 +12,9 @@ void ofApp::setup()
 	botonConectarPartida.addListener(this, &ofApp::conectarPartida);
 
 	jugadorLocal = NULL;
+
+	//cargar datos con sqlite3
+	Jugador::cargarDatos();
 }
 
 //--------------------------------------------------------------

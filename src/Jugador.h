@@ -1,7 +1,7 @@
 #pragma once
 #include "ofMain.h"
 #include "ofxJSONElement.h"
-
+#include "sqlite3.h"
 
 class Jugador
 {
@@ -15,6 +15,12 @@ public:
 	float rapidez;
 	string nombre;
 	string id;
+
+	//propiedades visuales del tanque
+	int ancho;
+	int alto;
+	int anchoOruga;
+	int largoCanon;
 	
 	bool w,a,s,d;
 	bool disparando;
@@ -27,7 +33,11 @@ public:
 	
 	ofxJSONElement datosRepl;
 
+	static void cargarDatos();
+
 private:
+	static int cargarJugadores(void *NotUsed, int argc, char **argv, char **azColName);
+
 };
 
 /*

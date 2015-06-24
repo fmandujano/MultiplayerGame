@@ -10,6 +10,7 @@ int main(int argc, char** argv )
 	int sizeY = 500;
 	bool fullscreen = false;
 	
+	//cargar datos desde archivo INI
 	ifstream configFile;
 	configFile.open("data/config.ini");
 

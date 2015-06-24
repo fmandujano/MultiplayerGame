@@ -1,0 +1,45 @@
+{
+   "jugadores" : [
+      {
+         "id" : "elemento0",
+         "input" : "01011"
+      },
+      {
+         "id" : "elemento1",
+         "input" : "01011"
+      },
+      {
+         "id" : "elemento2",
+         "input" : "01011"
+      },
+      {
+         "id" : "elemento3",
+         "input" : "01011"
+      },
+      {
+         "id" : "elemento4",
+         "input" : "01011"
+      },
+      {
+         "id" : "elemento5",
+         "input" : "01011"
+      },
+      {
+         "id" : "elemento6",
+         "input" : "01011"
+      },
+      {
+         "id" : "elemento7",
+         "input" : "01011"
+      },
+      {
+         "id" : "elemento8",
+         "input" : "01011"
+      },
+      {
+         "id" : "elemento9",
+         "input" : "01011"
+      }
+   ]
+}
+
