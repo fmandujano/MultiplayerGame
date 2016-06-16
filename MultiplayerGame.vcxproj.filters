@@ -52,6 +52,9 @@
     <ClCompile Include="src\Jugador.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\sqlite3.c">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -156,6 +159,9 @@
       <Filter>addons\ofxJSON\libs\jsoncpp\include\json</Filter>
     </ClInclude>
     <ClInclude Include="src\Jugador.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\sqlite3.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

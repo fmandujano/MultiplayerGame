@@ -13,8 +13,8 @@ void ofApp::setup()
 
 	jugadorLocal = NULL;
 
-	//cargar datos con sqlite3
-	Jugador::cargarDatos();
+	//ejemplo de cargar datos con sqlite3
+	//Jugador::cargarDatos();
 }
 
 //--------------------------------------------------------------
@@ -113,7 +113,6 @@ void ofApp::updateServidor()
 			{
 				ofLog(OF_LOG_NOTICE, "jugador conectado" );
 				TCPServer.disconnectClient(i);
-
 			}
 		}
 	}
@@ -281,7 +280,6 @@ void ofApp::conectarPartida()
 
 void ofApp::crearPartida()
 {
-	//iniciarServidor()
 	estado = EstadoApp::servidor;
 	//crear un servidor TCP para manejar los clientes que se quieren conectar
 	TCPServer.setup(PUERTO_TCP);

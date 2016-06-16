@@ -19,7 +19,90 @@ Jugador::Jugador(string _nombre, string _id)
 	id = _id;
 	datosRepl["id"] = id;
 
+	//cargarDesdeJSON();
+	nombreTanque = ofSystemTextBoxDialog("Que tanque vas a usar", "basico");
+	cargarSpriteTanque(nombreTanque);
+}
 
+
+Jugador::~Jugador(void)
+{
+}
+
+void Jugador::cargarSpriteTanque(string nombre)
+{
+	cout << "Cargando datos de tanque desde sqlite" << endl;
+	//referencia al archivo de la base de datos
+	sqlite3 *db;
+	//contador de registro, utilizado apra almacenar codigos de retorno
+	int rc;
+	//buffer para los mensajes de error
+	char *zErrMsg = 0;
+	//abrir el archivo y cargar la BD
+	rc = sqlite3_open("data/data.sqlite", &db);
+	//si rc es distinto de 0, hubo un error
+	if (rc)
+	{
+		printf("no se puede acceder a la base de datos");
+		sqlite3_close(db);
+	}
+
+	//seleccionar todas las columnas del registro cuyo nombre es el del tanque
+	string query = "SELECT * FROM tanque WHERE name='" + nombre + "'";
+
+	rc = sqlite3_exec(db, query.c_str(), procesarRegistroSprite, (void*)this, &zErrMsg); //cargarjugadores se llamara por cada registro que se encuentre
+
+	printf("error: %s\n", zErrMsg);
+}
+
+
+int Jugador::procesarRegistroSprite(void * refjugador, int argc, char **argv, char **azColName)
+{
+	Jugador *jugador = (Jugador*)refjugador;
+	if (jugador == NULL) return 1; //error: no se dio referencia de jugador 
+
+	for (int i = 0; i<argc; i++)
+	{
+		if (!strcmp(azColName[i], "x"))
+		{
+			jugador->sprite.x = atoi(argv[i]);
+		}else if (!strcmp(azColName[i], "y"))
+		{
+			jugador->sprite.y = atoi(argv[i]);
+		}else if (!strcmp(azColName[i], "w"))
+		{
+			jugador->sprite.w = atoi(argv[i]);
+		}else if (!strcmp(azColName[i], "h"))
+		{
+			jugador->sprite.h = atoi(argv[i]);
+		}
+		else if (!strcmp(azColName[i], "pivot_x"))
+		{
+			jugador->sprite.px = atof(argv[i]);
+		}
+		else if (!strcmp(azColName[i], "pivot_y"))
+		{
+			jugador->sprite.py = atof(argv[i]);
+		}
+		else if (!strcmp(azColName[i], "texture"))
+		{
+			ofLoadImage(jugador->sprite.textura, argv[i]);
+		}
+	}
+
+	std::cout << jugador->sprite.x << "," <<
+		jugador->sprite.y << "," <<
+		jugador->sprite.w << "," <<
+		jugador->sprite.h << "," <<
+		jugador->sprite.px << "," <<
+		jugador->sprite.py << 
+		std::endl;
+	//retornar 0, codigo de que no hubo error
+	return 0;
+}
+
+void Jugador::cargarDesdeJSON()
+{
 	//leer las propiedades visuales desde un archivo
 	string rutaArchivo = "tanque.json";
 	ofxJSONElement json;
@@ -36,13 +119,8 @@ Jugador::Jugador(string _nombre, string _id)
 	}
 }
 
-
-Jugador::~Jugador(void)
-{
-}
-
 /*
-	Carga los datos desde una base de datos implementada con sqlite3
+	Ejemplo de Carga los datos desde una base de datos implementada con sqlite3
 */
 void Jugador::cargarDatos()
 {
@@ -63,9 +141,10 @@ void Jugador::cargarDatos()
 	}
 
 	//seleccionar todas las columnas del registro cuyo nombre es chuchito
-	string query = "SELECT * FROM jugador WHERE nombre='chuchito'";
+	string query = "SELECT * FROM jugador WHERE xp>2000  ";
 	rc = sqlite3_exec(db, query.c_str(), cargarJugadores, 0, &zErrMsg); //cargarjugadores se llamara por cada registro que se encuentre
 }
+
 
 /*
 	callback llamado para cada registro encontrado en la consulta de jugadores
@@ -76,8 +155,16 @@ int Jugador::cargarJugadores(void *NotUsed, int argc, char **argv, char **azColN
 	std::cout << "Registro:\n";
 	for(int i=0; i<argc; i++)
 	{
-		std::cout << azColName[i] << " : " << argv[i] << std::endl;
+		std::cout << azColName[i] << "\t";
 	}
+	std::cout << std::endl;
+	for (int i = 0; i<argc; i++)
+	{
+		std::cout << argv[i] << "\t";
+	}
+	std::cout << std::endl;
+
+
 	//retornar 0, codigo de que no hubo error
 	return 0;
 }
@@ -106,6 +193,7 @@ void Jugador::update()
 
 void Jugador::draw()
 {
+	/*
 	ofSetColor(85,107,47);
 	//oruga izq
 	ofRect(posicion->x-(ancho/2), posicion->y-alto/2, anchoOruga, alto);
@@ -116,9 +204,21 @@ void Jugador::draw()
 	ofRect(posicion->x-2, posicion->y-largoCanon, 4, largoCanon); 
 	//torreta
 	ofCircle(posicion->x, posicion->y, ancho/2 - anchoOruga/2);
+	*/
 	//nombre del jugador
 	ofSetColor(ofColor::black);
-	ofDrawBitmapString(nombre, posicion->x - ancho, posicion->y -alto);
+	ofDrawBitmapString(nombre, posicion->x - ((float)sprite.w * sprite.px) -5
+								, posicion->y -((float)sprite.h * sprite.py) -5);
+	//sprite del jugador
+	ofSetColor(255);
+	sprite.textura.drawSubsection(posicion->x - ((float)sprite.w * sprite.px)  , 
+								posicion->y - ((float)sprite.h * sprite.py),
+								sprite.w, 
+								sprite.h, 
+								sprite.x, 
+								sprite.y);
+
+	//std::cout << (sprite.px) << '\n';
 }
 
 void Jugador::keyPressed(int key)
