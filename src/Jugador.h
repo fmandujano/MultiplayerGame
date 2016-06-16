@@ -20,7 +20,7 @@ class Jugador
 {
 public:
 	Jugador(void);
-	Jugador(string _nombre, string _id);
+	Jugador(string _nombre, string _id, bool _eslocal);
 	~Jugador(void);
 
 	bool esLocal;
@@ -34,7 +34,7 @@ public:
 	int alto;
 	int anchoOruga;
 	int largoCanon;
-
+	string nombreTanque;
 
 	
 	bool w,a,s,d;
@@ -56,7 +56,7 @@ private:
 	//sprite del jugador
 	Sprite sprite;
 	//nombre del sprite de tanque
-	string nombreTanque;
+	
 
 	/*
 	Strictly speaking, the Callback() function should be an extern "C" free function, not a static member.

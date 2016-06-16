@@ -35,13 +35,15 @@ void ofApp::updateCliente()
 	if (clienteEsperandoID )//&& TCPClient.isConnected())
 	{
 		string str = TCPClient.receive();
+		vector<string> parametros = ofSplitString(str, " ");
 		if(str.size() != 0)
 		{
-			idCliente = str;
+			idCliente = parametros[0];
 			ofLog(OF_LOG_NOTICE, "conectado a servidor con id: "+idCliente);
 			TCPClient.send("OK");
 			clienteEsperandoID = false;
-			jugadorLocal = new Jugador(nombreJugador, idCliente); 
+			jugadorLocal = new Jugador(nombreJugador, idCliente, false);
+			jugadorLocal->cargarSpriteTanque(parametros[1]);
 			jugadorLocal->esLocal = true;
 			//conectar por udp 
 			udpManager.Create();
@@ -103,10 +105,11 @@ void ofApp::updateServidor()
 			if (parametros[0] ==  string("HOLA"))
 			{
 				std::cout << "jugador " << parametros[1] << " se quiere conectar" << std::endl;
-				Jugador * jugadorNuevo = new Jugador(parametros[1], ofToString(i));
-				jugadorNuevo->esLocal = false;
+				Jugador * jugadorNuevo = new Jugador(parametros[1], ofToString(i), false);
+				//establecer tanque
+				jugadorNuevo->cargarSpriteTanque(parametros[2]);
 				jugadores.push_back(*jugadorNuevo);
-				TCPServer.send(i, ofToString(i));
+				TCPServer.send(i, ofToString(i)+" "+ parametros[2]);
 				//ofLog(OF_LOG_NOTICE, "jugador conectado"+i);
 			}
 			if(str == "OK")
@@ -266,15 +269,18 @@ void ofApp::drawServidor()
 	}
 }
 
+
 void ofApp::conectarPartida()
 {
 	nombreJugador = ofSystemTextBoxDialog("Tu nombre", "jugador");
 	string ipString = ofSystemTextBoxDialog("Direccion IP del servidor", "127.0.0.1");
+	string tanque = ofSystemTextBoxDialog("Escoge untanque", "pixelado");
+	
 	estado = EstadoApp::cliente;
 	bool conectado = TCPClient.setup(ipString, PUERTO_TCP);
 	//TCPClient.setMessageDelimiter("\n");
 	std::cout << "conectado a servidor" << conectado << std::endl;
-	TCPClient.send("HOLA "+nombreJugador );
+	TCPClient.send("HOLA "+nombreJugador + " "+tanque);
 	clienteEsperandoID = true;
 }
 
@@ -289,8 +295,7 @@ void ofApp::crearPartida()
 	udpManager.SetNonBlocking(true);
 	//crear un jugador local
 	nombreJugador = "Servid0r";
-	jugadorLocal = new Jugador(nombreJugador, "-1"); 
-	jugadorLocal->esLocal = true;
+	jugadorLocal = new Jugador(nombreJugador, "-1", true);
 }
 
 

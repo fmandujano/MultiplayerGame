@@ -3,10 +3,10 @@
 
 Jugador::Jugador(void)
 {
-	Jugador("jugador", "-1");
+	Jugador("jugador", "-1", true);
 }
 
-Jugador::Jugador(string _nombre, string _id)
+Jugador::Jugador(string _nombre, string _id, bool _esLocal)
 {
 	w = false;
 	a = false;
@@ -18,10 +18,14 @@ Jugador::Jugador(string _nombre, string _id)
 	nombre = _nombre;
 	id = _id;
 	datosRepl["id"] = id;
+	esLocal = _esLocal;
 
 	//cargarDesdeJSON();
-	nombreTanque = ofSystemTextBoxDialog("Que tanque vas a usar", "basico");
-	cargarSpriteTanque(nombreTanque);
+	if (esLocal)
+	{
+		nombreTanque = ofSystemTextBoxDialog("Que tanque vas a usar", "basico");
+		cargarSpriteTanque(nombreTanque);
+	}
 }
 
 
@@ -205,18 +209,33 @@ void Jugador::draw()
 	//torreta
 	ofCircle(posicion->x, posicion->y, ancho/2 - anchoOruga/2);
 	*/
-	//nombre del jugador
-	ofSetColor(ofColor::black);
-	ofDrawBitmapString(nombre, posicion->x - ((float)sprite.w * sprite.px) -5
-								, posicion->y -((float)sprite.h * sprite.py) -5);
+	
 	//sprite del jugador
-	ofSetColor(255);
-	sprite.textura.drawSubsection(posicion->x - ((float)sprite.w * sprite.px)  , 
-								posicion->y - ((float)sprite.h * sprite.py),
-								sprite.w, 
-								sprite.h, 
-								sprite.x, 
-								sprite.y);
+	if (sprite.textura.isAllocated())
+	{
+		//nombre del jugador
+		ofSetColor(ofColor::black);
+		ofDrawBitmapString(nombre, posicion->x - ((float)sprite.w * sprite.px) - 5
+			, posicion->y - ((float)sprite.h * sprite.py) - 5);
+		ofSetColor(255);
+		sprite.textura.drawSubsection(posicion->x - ((float)sprite.w * sprite.px),
+			posicion->y - ((float)sprite.h * sprite.py),
+			sprite.w,
+			sprite.h,
+			sprite.x,
+			sprite.y);
+	}
+	else
+	{
+		ofSetColor(ofColor::red);
+		ofDrawBitmapString(nombre, posicion->x - 30
+			, posicion->y - 30);
+
+		ofDrawRectangle(posicion->x - 25, posicion->y - 25, 50, 50);
+		ofSetColor(ofColor::black);
+		ofDrawBitmapString("SPRITE\nERROR", posicion->x - 20
+			, posicion->y - 20);
+	}
 
 	//std::cout << (sprite.px) << '\n';
 }
