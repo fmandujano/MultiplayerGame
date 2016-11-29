@@ -114,7 +114,7 @@ void ofApp::updateServidor()
 			}
 			if(str == "OK")
 			{
-				ofLog(OF_LOG_NOTICE, "jugador conectado" );
+				ofLog(OF_LOG_NOTICE, "se ha conectado");
 				TCPServer.disconnectClient(i);
 			}
 		}
@@ -158,21 +158,49 @@ void ofApp::updateServidor()
 		for(std::vector<Jugador>::iterator jug = jugadores.begin(); jug != jugadores.end(); ++jug) 
 		{
 			jug->update();
-			//preparar el mensaje global
-			jsonJugador["id"] = jug->id;
-			jsonJugador["nombre"] = jug->nombre;
-			jsonJugador["x"] = jug->posicion->x;
-			jsonJugador["y"] = jug->posicion->y;
-			broadcastJSON["jugadores"][i] = jsonJugador;
-			i++;
+
+			//comprobar si no se han desconectado
+			if (!jug->heartbeat)
+			{
+				jug->heartbeatCounter += ofGetLastFrameTime();
+			}
+			else
+			{
+				jug->heartbeatCounter = 0;
+				jug->heartbeat = false;
+			}
+
+			if (jug->heartbeatCounter > 5)
+			{
+				jugADesconectar = &(*jug);
+			}
+			else
+			{
+				//preparar el mensaje global
+				jsonJugador["id"] = jug->id;
+				jsonJugador["nombre"] = jug->nombre;
+				jsonJugador["x"] = jug->posicion->x;
+				jsonJugador["y"] = jug->posicion->y;
+				broadcastJSON["jugadores"][i] = jsonJugador;
+				i++;
+			}
+
+
+		}
+
+		//eliminar el jugador marcado
+		if ( jugADesconectar != NULL)
+		{
+			ofLog(ofLogLevel::OF_LOG_NOTICE, "%s se ha desconectado \n", jugADesconectar->nombre);
+			jugadores.push_back(*jugADesconectar);
+			jugADesconectar = NULL;
 		}
 
 		udpManager.SendAll(broadcastJSON.getRawString().c_str(), broadcastJSON.getRawString().size());
-		std::cout << "Enviando " << broadcastJSON.getRawString().size() << "bytes" << std::endl;
-		//delete &jsonJugador;
 	}
 }
 
+//Servidor analiza el mensaje recibido
 void ofApp::analizarMensajeUDP(const char * mensaje)
 {
 	//std::cout << "UDP: " << mensaje <<std::endl;
@@ -196,6 +224,9 @@ void ofApp::analizarMensajeUDP(const char * mensaje)
 				it->s = (input[2] - '0') != 0;
 				it->d = (input[3] - '0') != 0;
 				it->disparando = (input[4] - '0') != 0;
+
+				it->heartbeat = true;
+
 				break;
 			}
 		}
@@ -210,15 +241,9 @@ void ofApp::analizarMensajeUDPGlobal(const char * mensaje)
 	if(json.parse(mensaje))
 	{
 		ofxJSONElement::Value lista = json["jugadores"];
-		if(lista.isArray()     )
+		if(lista.isArray())
 		{
-			for(Json::ValueIterator itr = lista.begin(); itr != lista.end(); itr++)
-			{
-				//std::cout<<  (*itr)["nombre"].asString();
-				dibujarJugadorSimple(  (*itr)["nombre"].asString(),
-										ofToInt((*itr)["x"].asString()),
-										ofToInt((*itr)["y"].asString()));
-			}
+			jugadoresJSON = json["jugadores"];
 		}
 	}
 }
@@ -249,26 +274,32 @@ void ofApp::drawCliente()
 	{
 		jugadorLocal->draw();
 	}
-		//iterar la lista de jugadores remotos y dibujarlos
-	/*
-	for(std::vector<Jugador>::iterator it = jugadores.begin(); it != jugadores.end(); ++it) 
+
+	//iterar la lista de jugadores remotos y dibujarlos
+	for (Json::ValueIterator itr = jugadoresJSON.begin(); itr != jugadoresJSON.end(); itr++)
 	{
-		Jugador j = *it;
-		j.draw();
-	}*/
+		//std::cout << "dibujando a " << (*itr)["nombre"].asString();
+		if ((*itr)["id"].asString() != jugadorLocal->id)
+		{
+			//TODO dibujar como sprite
+			dibujarJugadorSimple((*itr)["nombre"].asString(),
+				ofToInt((*itr)["x"].asString()),
+				ofToInt((*itr)["y"].asString()));
+		}
+	}
 }
 
 void ofApp::drawServidor()
 {
 	jugadorLocal->draw();
 	//iterar la lista de jugadores y dibujarlos
-	for(std::vector<Jugador>::iterator it = jugadores.begin(); it != jugadores.end(); ++it) 
+	for (std::vector<Jugador>::iterator it = jugadores.begin(); it != jugadores.end(); ++it)
 	{
 		Jugador j = *it;
 		j.draw();
 	}
+	
 }
-
 
 void ofApp::conectarPartida()
 {
@@ -351,7 +382,7 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 
 void ofApp::dibujarJugadorSimple(string nombre, int x, int y)
 {
-	std::cout << "dibujando jugador " << nombre << std::endl;
+	//std::cout << "dibujando jugador " << nombre << std::endl;
 	int ancho = 30;
 	int alto = 34;
 	int anchoOruga = 8;

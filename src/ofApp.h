@@ -50,6 +50,12 @@ class ofApp : public ofBaseApp{
 		//jugadores remotos
 		std::vector<Jugador> jugadores;
 
+		//siguiente jugador a desconectar
+		Jugador * jugADesconectar = NULL;
+
+		//jugadores remotos cuando se es cliente, se guardan en un json
+		ofxJSONElement::Value jugadoresJSON;
+
 		/// variables de cliente
 		ofxTCPClient TCPClient;
 		bool clienteEsperandoID;

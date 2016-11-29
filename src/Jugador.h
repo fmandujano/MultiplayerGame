@@ -48,6 +48,11 @@ public:
 	
 	ofxJSONElement datosRepl;
 
+	//para comprobar si sigue conectado
+	bool heartbeat;
+	float heartbeatCounter;
+
+
 	void cargarDesdeJSON();
 	void cargarSpriteTanque(string nombre);
 	static void cargarDatos();
