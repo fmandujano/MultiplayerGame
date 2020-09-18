@@ -15,6 +15,7 @@ Jugador::Jugador(string _nombre, string _id, bool _esLocal)
 	disparando = false;
 	posicion = new ofVec2f(50,50);
 	rapidez = 100; //pixeles sobre segundo
+	rotacion = 0;
 	nombre = _nombre;
 	id = _id;
 	datosRepl["id"] = id;
@@ -175,10 +176,26 @@ int Jugador::cargarJugadores(void *NotUsed, int argc, char **argv, char **azColN
 
 void Jugador::update()
 {
-	if(a) posicion->x -= rapidez*ofGetLastFrameTime();
-	if(d) posicion->x += rapidez*ofGetLastFrameTime();
-	if(w) posicion->y -= rapidez*ofGetLastFrameTime();
-	if(s) posicion->y += rapidez*ofGetLastFrameTime();
+	if (a)
+	{
+		posicion->x -= rapidez * ofGetLastFrameTime();
+		rotacion = -90;
+	}
+	if(d)
+	{
+		posicion->x += rapidez*ofGetLastFrameTime();
+		rotacion = 90;
+	}
+	if(w) 
+	{
+		posicion->y -= rapidez*ofGetLastFrameTime();
+		rotacion = 0;
+	}
+	if(s) 
+	{
+		posicion->y += rapidez*ofGetLastFrameTime();
+		rotacion = 180;
+	}
 
 	//imprime el estado de los inputs
 	//if(!esLocal) std::cout << w<<a<<s<<d<< std::endl;
@@ -218,12 +235,20 @@ void Jugador::draw()
 		ofDrawBitmapString(nombre, posicion->x - ((float)sprite.w * sprite.px) - 5
 			, posicion->y - ((float)sprite.h * sprite.py) - 5);
 		ofSetColor(255);
-		sprite.textura.drawSubsection(posicion->x - ((float)sprite.w * sprite.px),
-			posicion->y - ((float)sprite.h * sprite.py),
+
+		//dibujado del sprite del tanque
+		ofPushMatrix();
+		ofTranslate(posicion->x, posicion->y);
+		
+		ofRotateDeg(rotacion);
+		sprite.textura.drawSubsection((float)sprite.w * -sprite.px,
+			(float)sprite.h * -sprite.py,
 			sprite.w,
 			sprite.h,
 			sprite.x,
 			sprite.y);
+		//ofDrawAxis(10);
+		ofPopMatrix();
 	}
 	else
 	{

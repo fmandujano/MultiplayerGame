@@ -25,6 +25,8 @@ public:
 
 	bool esLocal;
 	ofVec2f *posicion;
+	//rotacion del tanque en grados
+	float rotacion;
 	float rapidez;
 	string nombre;
 	string id;
@@ -46,7 +48,7 @@ public:
 	void keyPressed(int key);
 	void keyReleased(int key);
 	
-	ofxJSONElement datosRepl;
+	ofxJSONElement datosRepl; 
 
 	//para comprobar si sigue conectado
 	bool heartbeat;
